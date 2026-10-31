@@ -1,0 +1,10 @@
+method,seed,EN,SSIM
+MethodA,0,7.12,0.81
+MethodA,1,7.08,0.80
+MethodA,2,7.15,0.82
+MethodB,0,6.95,0.84
+MethodB,1,6.99,0.83
+MethodB,2,6.91,0.85
+MethodC,0,7.03,0.79
+MethodC,1,7.10,0.78
+MethodC,2,7.06,0.80
