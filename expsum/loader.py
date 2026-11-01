@@ -38,12 +38,3 @@ def load_csv(path: Path) -> list[RunResult]:
     except OSError as e:
         raise ResultFileError(f"文件读取失败{path}：{e}") from e
     return results
-
-if __name__ == "__main__":
-    try:
-        path = Path(__file__).parent / "result.csv"
-        results = load_csv(path)
-        for result in results:
-            print(result.method, result.seed, result.metrics)
-    except ResultFileError as e:
-        print(f"读取失败：{e}")
