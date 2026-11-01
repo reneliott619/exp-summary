@@ -2,29 +2,9 @@ import statistics
 from pathlib import Path
 from dataclasses import dataclass
 from expsum.aggregate import MetricStat
-
-@dataclass
-class RunResult:
-    method: str
-    seed: int
-    metrics: dict[str, float]
+from expsum.loader import RunResult
 
 
-def load_csv(path: Path) -> list[RunResult]:
-    results = []
-    with path.open(encoding="utf-8", newline="") as f:
-         for row in csv.DictReader(f):
-            method = row["method"]
-            seed = int(row["seed"])
-            metrics = {k: float(v) for k, v in row.items() if k not in ("method", "seed")}
-
-            result = RunResult(
-                method=method,
-                seed=seed,
-                metrics=metrics
-            )
-            results.append(result)
-    return results
 
 def summarize_results(results: list[RunResult]) -> dict[str, dict[str, MetricStat]]:
     values_by_method = {}
@@ -74,3 +54,63 @@ def format_markdown(
     # 将所有行拼接成完整字符串
     return "\n".join(lines)
 
+def _escape_latex(text: str) -> str:
+    """转义 LaTeX 表格中的特殊字符。"""
+    replacements = {
+        "\\": r"\textbackslash{}",
+        "&": r"\&",
+        "%": r"\%",
+        "$": r"\$",
+        "#": r"\#",
+        "_": r"\_",
+        "{": r"\{",
+        "}": r"\}",
+    }
+
+    return "".join(replacements.get(char, char) for char in text)
+
+
+def to_latex(summary: dict[str, dict[str, MetricStat]]) -> str:
+    """将实验结果格式化为 LaTeX 表格。"""
+    if not summary:
+        return ""
+
+    # 收集所有指标名称，避免不同方法的指标不完全一致时漏列
+    metrics = list(
+        dict.fromkeys(
+            metric
+            for values in summary.values()
+            for metric in values
+        )
+    )
+
+    # 第一列是 Method，其他列是实验指标。
+    columns = "l" + "c" * len(metrics)
+
+    header = ["Method"] + metrics
+    lines = [
+        rf"\begin{{tabular}}{{{columns}}}",
+        r"\hline",
+        " & ".join(_escape_latex(name) for name in header) + r" \\",
+        r"\hline",
+    ]
+
+    for method, values in summary.items():
+        row = [_escape_latex(method)]
+
+        for metric in metrics:
+            if metric not in values:
+                row.append("--")
+                continue
+
+            stats = values[metric]
+            row.append(rf"${stats.mean:.2f} \pm {stats.std:.2f}$")
+
+        lines.append(" & ".join(row) + r" \\")
+
+    lines.extend([
+        r"\hline",
+        r"\end{tabular}",
+    ])
+
+    return "\n".join(lines)

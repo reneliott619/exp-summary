@@ -3,7 +3,7 @@ import sys
 
 from .loader import load_csv, ResultFileError
 from .aggregate import summarize_results
-from .formatter import format_markdown
+from .formatter import format_markdown, to_latex
 
 
 def main():
@@ -16,6 +16,13 @@ def main():
         help="实验结果 CSV 文件路径",
     )
 
+    parser.add_argument(
+        "--format",
+        choices=["markdown", "latex"],
+        default="markdown",
+        help="输出格式：markdown 或 latex，默认是 markdown",
+    )
+
     args = parser.parse_args()
 
     try:
@@ -25,12 +32,13 @@ def main():
         # 2. 计算均值和标准差
         summary = summarize_results(results)
 
-        # 3. 格式化为 Markdown 表格
-        table = format_markdown(summary)
+        if args.format == "markdown":
+            output = format_markdown(summary)
+        else:
+            output = to_latex(summary)
 
-        # 4. 输出结果
-        if table:
-            print(table)
+        if output:
+            print(output)
         else:
             print("CSV 文件中没有实验结果。")
 
