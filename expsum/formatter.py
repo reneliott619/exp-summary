@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from expsum.aggregate import MetricStat
 from expsum.loader import RunResult
 
-
+DEFAULT_DIGITS = 3
 
 def summarize_results(results: list[RunResult]) -> dict[str, dict[str, MetricStat]]:
     values_by_method = {}
