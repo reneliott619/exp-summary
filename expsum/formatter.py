@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from expsum.aggregate import MetricStat
 from expsum.loader import RunResult
 
-
+DEFAULT_DIGITS = 4
 
 def summarize_results(results: list[RunResult]) -> dict[str, dict[str, MetricStat]]:
     values_by_method = {}
@@ -27,7 +27,8 @@ def summarize_results(results: list[RunResult]) -> dict[str, dict[str, MetricSta
     return summary
 
 def format_markdown(
-    summary: dict[str, dict[str, MetricStat]]
+    summary: dict[str, dict[str, MetricStat]],
+    digits: int = DEFAULT_DIGITS
 ) -> str:
     # 获取所有指标名称
     first_method_stats = list(summary.values())[0]
@@ -47,7 +48,7 @@ def format_markdown(
 
         for metric in metric_names:
             stats = values[metric]
-            row.append(f"{stats.mean:.2f} ± {stats.std:.2f}")
+            row.append(f"{stats.mean:.{digits}f} ± {stats.std:.{digits}f}")
 
         lines.append("| " + " | ".join(row) + " |")
 
@@ -70,7 +71,9 @@ def _escape_latex(text: str) -> str:
     return "".join(replacements.get(char, char) for char in text)
 
 
-def to_latex(summary: dict[str, dict[str, MetricStat]]) -> str:
+def to_latex(summary: dict[str, dict[str, MetricStat]],
+             digits: int = DEFAULT_DIGITS
+) -> str:
     """将实验结果格式化为 LaTeX 表格。"""
     if not summary:
         return ""
@@ -104,7 +107,7 @@ def to_latex(summary: dict[str, dict[str, MetricStat]]) -> str:
                 continue
 
             stats = values[metric]
-            row.append(rf"${stats.mean:.2f} \pm {stats.std:.2f}$")
+            row.append(rf"${stats.mean:.{digits}f} \pm {stats.std:.{digits}f}$")
 
         lines.append(" & ".join(row) + r" \\")
 
