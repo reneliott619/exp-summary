@@ -205,3 +205,57 @@ ruff check --select ANN .
 ```bash
 ruff format .
 ```
+## 安装
+
+需要 Python 3.10 及以上。
+
+```bash
+pip install -r requirements.txt
+```
+
+命令行功能只使用 Python 标准库；API 服务依赖 FastAPI。
+
+## API 用法
+
+启动服务：
+
+```bash
+uvicorn expsum.api:app --reload
+```
+
+启动后访问 http://127.0.0.1:8000/docs 可在网页上直接测试接口。
+
+### 接口说明
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/health` | 健康检查，返回 `{"status": "ok"}` |
+| POST | `/summarize` | 上传 CSV，返回统计表格 |
+
+`/summarize` 的参数：
+
+- `file`（必填）：实验结果 CSV 文件，格式同命令行
+- `digits`（可选，默认 3）：保留的小数位数
+- `format`（可选，默认 `markdown`）：输出格式，`markdown` 或 `latex`
+
+### 示例
+
+```bash
+curl -F "file=@examples/results.csv" "http://127.0.0.1:8000/summarize?digits=2"
+```
+
+返回：
+
+```json
+{
+  "format": "markdown",
+  "table": "| Method | EN | SSIM |\n| --- | --- | --- |\n| MethodA | 7.12 ± 0.04 | 0.81 ± 0.01 |\n..."
+}
+```
+
+### 错误码
+
+| 状态码 | 含义 |
+|--------|------|
+| 400 | 文件内容有误（缺列、数值无法解析、编码不是 UTF-8） |
+| 422 | 参数不合法（如 `digits` 为负数、`format` 不在可选范围内） |
